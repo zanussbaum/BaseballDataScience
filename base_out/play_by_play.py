@@ -18,20 +18,21 @@ class Season:
             start_year: an int representing the start year
             end_year: an int representing the end year 
         """
-        self.dates = {2017:('2017-04-02','2017-10-1')}
+        self.dates = {2018: ('2018-03-29', '2018-10-01'),
+            2017:('2017-04-02','2017-10-1'), 
+            2016: ('2016-04-02', '2016-10-2'),
+            2015: ('2015-04-05', '2015-10-03'),
+            2014: ('2014-03-22', '2014-09-28')
+        }
         if start_year > end_year:
             raise ValueError("The start year cannot be after the end year")
-        if end_year-start_year > 0:
-            start_date = self.dates[start_year][0]
-            end_date = self.dates[end_year][1]
-            date = (start_date,end_date)
-            self.game_ids(date)
-        else:
-            self.game_ids = self._get_game_ids(self.dates[start_year])
+
+        self.game_ids = self._get_game_ids(start_year, end_year)
+
         self.play_by_play = self._get_play_by_play()
 
 
-    def _get_game_ids(self, date):
+    def _get_game_ids(self, start_year, end_year):
         """Grabs all the game ids for the given years
 
         Params:
@@ -41,17 +42,29 @@ class Season:
         Returns:
             games: a list of all game ids within the time frame 
         """
-        start_date = date[0]
-        end_date = date[1]
-        print("getting game ids from %s to %s" %(start_date, end_date))
+        year_list = []
+        if end_year - start_year > 0:
+            num_years = end_year - start_year + 1
+            for i in range(num_years):
+                year_list.append(self.dates[start_year + i])
+
+        else:
+            year_list.append(self.dates[start_year])
+
+        games = []
+        for year in year_list:
+            start_date = year[0]
+            end_date = year[1]
+            print("getting game ids from %s to %s" %(start_date, end_date))
+            
+            try:
+                games += [str(game['game_id']) for game in schedule(start_date=start_date,end_date=end_date)]
+                print("success getting game id's. There are now {} games".format(len(games)))
+            except:
+                print("failed to get the game id's")
         
-        try:
-            games = [str(game['game_id']) for game in schedule(start_date=start_date,end_date=end_date)]
-            print("success getting game id's")
-            return games
-        except:
-            print("failed to get the game id's")
-        
+        print('we retrieved {} games'.format(len(games)))
+        return games
 
     def _get_play_by_play(self):
         """Returns the play by play data for all games within the timeframe designated
@@ -72,6 +85,6 @@ class Season:
         return play_by_play
 
 if __name__ == '__main__':
-    test = Season(2017,2018)
+    test = Season(2014,2018)
     print(test.game_ids)
     print(test.play_by_play)
